@@ -1,4 +1,4 @@
-package time
+package model
 
 import (
 	gotime "time"
@@ -11,6 +11,7 @@ const (
 )
 
 // A TTL is used for conversion of redis key experations.
+// The duration is stored identically to time.Duration.
 type TTL int64
 
 // Duration converts the TTL to time.Duration
