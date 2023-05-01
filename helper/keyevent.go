@@ -51,7 +51,6 @@ func EnableExpiredNKE(ctx context.Context, rc rueidis.Client) error {
 // Read notify-keyspace-events config
 func GetNKE(ctx context.Context, rc rueidis.Client) (string, error) {
 	res, err := rc.Do(ctx, rc.B().ConfigGet().Parameter(nkeKey).Build()).AsStrMap()
-
 	if err != nil {
 		return "", err
 	}

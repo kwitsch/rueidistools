@@ -38,10 +38,14 @@ func NewTicker(d model.TTL, name, prefix string, client rueidis.Client) (*Ticker
 		Err:          make(chan error, 1),
 	}
 
-	helper.EnableExpiredNKE(ctx, client)
+	if err := helper.EnableExpiredNKE(ctx, client); err != nil {
+		res.Close()
+
+		return nil, err
+	}
 
 	go func() {
-		res.client.Receive(ctx,
+		_ = res.client.Receive(ctx,
 			res.client.B().Psubscribe().Pattern(res.key.KeySpacePattern()).Build(),
 			func(m rueidis.PubSubMessage) {
 				res.C <- gotime.Now()
@@ -67,7 +71,6 @@ func (t *Ticker) Close() {
 	defer t.clientCancel()
 	defer t.ctxCa()
 	defer close(t.C)
-
 }
 
 func (t *Ticker) exists(ctx context.Context) bool {
@@ -76,7 +79,6 @@ func (t *Ticker) exists(ctx context.Context) bool {
 			Exists().
 			Key(t.key.String()).
 			Build()).AsBool()
-
 	if err != nil {
 		t.Err <- err
 
