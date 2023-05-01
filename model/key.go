@@ -20,10 +20,18 @@ func NewKey(parts ...string) *Key {
 	return &res
 }
 
-func (k *Key) Key() string {
+func (k *Key) String() string {
 	return k.key
 }
 
 func (k *Key) KeySpacePattern() string {
 	return k.spacePattern
+}
+
+func (k *Key) NewSubkey(parts ...string) *Key {
+	ip := []string{k.key}
+
+	ip = append(ip, parts...)
+
+	return NewKey(ip...)
 }
