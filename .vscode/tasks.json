@@ -22,7 +22,7 @@
     {
       "label": "Lint",
       "type": "shell",
-      "command": "go run github.com/golangci/golangci-lint/cmd/golangci-lint -v run --timeout 5m",
+      "command": "go run github.com/golangci/golangci-lint/cmd/golangci-lint run --timeout 5m",
       "group": "none",
       "presentation": {
         "reveal": "always"

@@ -1,17 +1,98 @@
 linters:
+  enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - dogsled
+    - dupl
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godox
+    - gofmt
+    - goimports
+    - gomnd
+    - gomodguard
+    - gosec
+    - gosimple
+    - govet
+    - grouper
+    - importas
+    - ineffassign
+    - lll
+    - makezero
+    - misspell
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
+    - nlreturn
+    - nolintlint
+    - nosprintfhostport
+    - prealloc
+    - predeclared
+    - revive
+    - sqlclosecheck
+    - staticcheck
+    - stylecheck
+    - tenv
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+    - wsl
+    - ginkgolinter
+    - noctx
+    - containedctx
+    - contextcheck
+  disable:
+    - scopelint
+    - structcheck
+    - deadcode
+    - varcheck
+    - forbidigo
+    - gosmopolitan
+  disable-all: false
   presets:
     - bugs
     - unused
+  fast: false
+
+linters-settings:
+  ginkgolinter:
+    forbid-focus-container: true
+  stylecheck:
+    dot-import-whitelist:
+      - "github.com/onsi/ginkgo/v2"
+      - "github.com/onsi/gomega"
+  revive:
+    rules:
+      - name: dot-imports
+        disabled: true
 
 issues:
   exclude-rules:
-    # Exclude some linters from running on tests files.
     - path: _test\.go
       linters:
-        - gochecknoglobals
         - dupl
+        - funlen
+        - gochecknoinits
+        - gochecknoglobals
         - gosec
-
-run:
-  skip-files:
-    - tools.go
+    - path: _test\.go
+      linters:
+        - staticcheck
+      text: "SA1012:"
