@@ -7,7 +7,7 @@ import (
 
 	"github.com/kwitsch/rueidistools/helper"
 	"github.com/kwitsch/rueidistools/model"
-	"github.com/rueian/rueidis"
+	"github.com/redis/rueidis"
 )
 
 type Ticker struct {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rueian/rueidis"
+	"github.com/redis/rueidis"
 )
 
 const (

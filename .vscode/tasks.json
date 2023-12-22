@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Tidy",
+      "type": "shell",
+      "command": "go mod tidy",
+      "group": "none",
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "FMT",
+      "type": "shell",
+      "command": "go run mvdan.cc/gofumpt -l -w -extra . && find . -name '*.go' -exec go run golang.org/x/tools/cmd/goimports -w {} +",
+      "group": "none",
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Lint",
+      "type": "shell",
+      "command": "go run github.com/golangci/golangci-lint/cmd/golangci-lint -v run --timeout 5m",
+      "group": "none",
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ]
+}
