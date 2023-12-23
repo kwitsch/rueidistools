@@ -20,7 +20,7 @@ type Ticker struct {
 // NewTicker creates a new ticker instance
 func NewTicker(ctx context.Context, d time.Duration, name, prefix string, client rueidis.Client) (Ticker, error) {
 	duration := helper.DurationToTTL[int64](d)
-	if d.Seconds() <= 0 {
+	if duration <= 0 {
 		return Ticker{}, errors.New("the ticker duration hast to be at least one second")
 	}
 
@@ -153,7 +153,7 @@ func (r *tickerRuntime) set(ctx context.Context, overwrite bool) error {
 	res := r.client.Do(ctx,
 		r.client.B().Set().
 			Key(r.key.String()).
-			Value(time.Duration(r.duration).String()).
+			Value(helper.TTLToString(r.duration)).
 			ExSeconds(r.duration).
 			Build())
 

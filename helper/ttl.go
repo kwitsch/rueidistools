@@ -30,3 +30,8 @@ func DurationToTTL[T TTL](d time.Duration) T {
 
 	return T(seconds)
 }
+
+// TTLToDuration prints the TTL as a time.Duration string
+func TTLToString[T TTL](ttl T) string {
+	return time.Duration(ttl).String()
+}
