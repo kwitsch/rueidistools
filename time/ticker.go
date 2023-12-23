@@ -3,100 +3,169 @@ package time
 import (
 	"context"
 	"errors"
-	gotime "time"
+	"time"
 
 	"github.com/kwitsch/rueidistools/helper"
 	"github.com/kwitsch/rueidistools/model"
 	"github.com/redis/rueidis"
 )
 
+// Ticker is a ticker that uses redis keyspace events to tick
 type Ticker struct {
-	key          *model.Key
-	duration     model.TTL
-	client       rueidis.DedicatedClient
-	clientCancel func()
-	ctxCa        context.CancelFunc
-	C            chan gotime.Time
-	Err          chan error
+	r   tickerRuntime
+	C   <-chan time.Time
+	Err <-chan error
 }
 
-func NewTicker(d model.TTL, name, prefix string, client rueidis.Client) (*Ticker, error) {
-	if d.SecondsUI32() == 0 {
-		return nil, errors.New("the ticker duration hast to be at least one second")
+// NewTicker creates a new ticker instance
+func NewTicker(ctx context.Context, d time.Duration, name, prefix string, client rueidis.Client) (Ticker, error) {
+	duration := helper.DurationToTTL[int64](d)
+	if d.Seconds() <= 0 {
+		return Ticker{}, errors.New("the ticker duration hast to be at least one second")
 	}
 
-	ctx, ctxCa := context.WithCancel(context.Background())
+	cctx, cancel := context.WithCancel(ctx)
 
 	dClient, dcCancel := client.Dedicate()
-	res := Ticker{
-		key:          model.NewKey(prefix, name),
-		duration:     d,
-		client:       dClient,
-		clientCancel: dcCancel,
-		ctxCa:        ctxCa,
-		C:            make(chan gotime.Time, 1),
-		Err:          make(chan error, 1),
-	}
 
 	if err := helper.EnableExpiredNKE(ctx, client); err != nil {
-		res.Close()
+		defer cancel()
+		defer dcCancel()
 
-		return nil, err
+		return Ticker{}, err
 	}
 
-	go func() {
-		_ = res.client.Receive(ctx,
-			res.client.B().Psubscribe().Pattern(res.key.KeySpacePattern()).Build(),
-			func(m rueidis.PubSubMessage) {
-				res.C <- gotime.Now()
-				res.set(ctx)
-			})
-	}()
-
-	if !res.exists(ctx) {
-		res.set(ctx)
+	cChan := make(chan time.Time, 1)
+	errChan := make(chan error, 1)
+	t := Ticker{
+		r: tickerRuntime{
+			key:      model.NewKey(name, prefix),
+			duration: duration,
+			client:   dClient,
+			u:        make(chan int64, 1),
+			d:        make(chan bool, 1),
+			c:        cChan,
+			err:      errChan,
+		},
+		C:   cChan,
+		Err: errChan,
 	}
 
-	return &res, nil
+	go t.r.run(cctx, cancel, dcCancel)
+
+	return t, nil
 }
 
-func (t *Ticker) Reset(d model.TTL) {
-	t.duration = d
-
-	t.set(context.Background())
+// Reset resets the ticker duration to the given duration
+func (t *Ticker) Reset(d time.Duration) {
+	t.r.u <- helper.DurationToTTL[int64](d)
 }
 
+// Close closes the ticker
 func (t *Ticker) Close() {
-	defer t.client.Close()
-	defer t.clientCancel()
-	defer t.ctxCa()
-	defer close(t.C)
+	t.r.d <- true
 }
 
-func (t *Ticker) exists(ctx context.Context) bool {
-	res, err := t.client.Do(ctx,
-		t.client.B().
-			Exists().
-			Key(t.key.String()).
-			Build()).AsBool()
-	if err != nil {
-		t.Err <- err
+// tickerRuntime is the internal runtime of a ticker
+type tickerRuntime struct {
+	key      model.Key
+	duration int64
+	client   rueidis.DedicatedClient
+	u        chan int64
+	d        chan bool
+	c        chan time.Time
+	err      chan error
+}
 
-		return false
+// run is the main loop of the ticker
+func (r *tickerRuntime) run(ctx context.Context, ctxCancel context.CancelFunc, clientCancel func()) {
+	// close rueidis client on exit
+	defer clientCancel()
+	// close context on exit
+	defer ctxCancel()
+	// close channels on exit
+	defer close(r.u)
+	defer close(r.d)
+	defer close(r.c)
+
+	// subscribe to key space events for the ticker key
+	if err := r.client.Receive(ctx,
+		r.client.B().Psubscribe().Pattern(r.key.KeySpacePattern()).Build(),
+		func(m rueidis.PubSubMessage) {
+			r.c <- time.Now()
+		}); err != nil {
+		r.err <- err
 	}
 
-	return res
+	// set the ticker key
+	if err := r.set(ctx, false); err != nil {
+		r.err <- err
+	}
+
+	for {
+		select {
+		// update the duration of the ticker key
+		case d := <-r.u:
+			r.duration = d
+			r.raiseError(r.set(ctx, true))
+			// close the ticker if an error occurred
+		case <-r.err:
+			r.d <- true
+			// send a tick
+		case <-r.c:
+			r.raiseError(r.set(ctx, false))
+			// remove the ticker key if the ticker is closed
+		case <-r.d:
+			r.raiseError(r.remove(ctx))
+
+			return
+			// close the ticker if the context is done
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
-func (t *Ticker) set(ctx context.Context) {
-	res := t.client.Do(ctx,
-		t.client.B().Set().
-			Key(t.key.String()).
-			Value(t.duration.String()).
-			ExSeconds(t.duration.SecondsI64()).
+// raiseError sends an error to the error channel if the error is not nil
+func (r *tickerRuntime) raiseError(err error) {
+	if err != nil {
+		r.err <- err
+	}
+}
+
+// set sets the ticker key to the current time and the duration as TTL
+func (r *tickerRuntime) set(ctx context.Context, overwrite bool) error {
+	if !overwrite {
+		exists, err := r.client.Do(ctx,
+			r.client.B().
+				Exists().
+				Key(r.key.String()).
+				Build()).AsBool()
+		if err != nil {
+			return err
+		}
+
+		if exists {
+			return nil
+		}
+	}
+
+	res := r.client.Do(ctx,
+		r.client.B().Set().
+			Key(r.key.String()).
+			Value(time.Duration(r.duration).String()).
+			ExSeconds(r.duration).
 			Build())
 
-	if res.Error() != nil {
-		t.Err <- res.Error()
-	}
+	return res.Error()
+}
+
+// remove removes the ticker key
+func (r *tickerRuntime) remove(ctx context.Context) error {
+	res := r.client.Do(ctx,
+		r.client.B().Del().
+			Key(r.key.String()).
+			Build())
+
+	return res.Error()
 }

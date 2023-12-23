@@ -10,14 +10,14 @@ type Key struct {
 	spacePattern string
 }
 
-func NewKey(parts ...string) *Key {
+func NewKey(parts ...string) Key {
 	res := Key{
 		key: strings.Join(parts, ":"),
 	}
 
 	res.spacePattern = fmt.Sprintf("__keyspace@?__:%s", res.key)
 
-	return &res
+	return res
 }
 
 func (k *Key) String() string {
@@ -28,7 +28,7 @@ func (k *Key) KeySpacePattern() string {
 	return k.spacePattern
 }
 
-func (k *Key) NewSubkey(parts ...string) *Key {
+func (k *Key) NewSubkey(parts ...string) Key {
 	ip := []string{k.key}
 
 	ip = append(ip, parts...)
