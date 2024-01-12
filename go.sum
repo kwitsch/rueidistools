@@ -465,8 +465,8 @@ github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 h1:TCg2WBOl
 github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727/go.mod h1:rlzQ04UMyJXu/aOvhd8qT+hvDrFpiwqp8MRXDY9szc0=
 github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 h1:M8mH9eK4OUR4lu7Gd+PU1fV2/qnDNfzT635KRSObncs=
 github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567/go.mod h1:DWNGW8A4Y+GyBgPuaQJuWiy0XYftx4Xm/y5Jqk9I6VQ=
-github.com/redis/rueidis v1.0.26 h1:u2QVp9yEREZQ0xfUgmaOBL0mED14u+j+akkfCRcOJYw=
-github.com/redis/rueidis v1.0.26/go.mod h1:NT7lPuiVYijdZVsV0V8i9ZUhqe1OMGaq+NiQigNuKlg=
+github.com/redis/rueidis v1.0.27 h1:UhTlj+9JBuQe6SHe60YJA+0TonZDi5n/TkJZ7QTyV/s=
+github.com/redis/rueidis v1.0.27/go.mod h1:NT7lPuiVYijdZVsV0V8i9ZUhqe1OMGaq+NiQigNuKlg=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.10.0 h1:TMyTOH3F/DB16zRVcYyreMH6GnZZrwQVAoYjRBZyWFQ=
 github.com/rogpeppe/go-internal v1.10.0/go.mod h1:UQnix2H7Ngw/k4C5ijL5+65zddjncjaFoBhdsK/akog=
