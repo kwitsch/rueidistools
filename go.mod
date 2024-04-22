@@ -185,7 +185,7 @@ require (
 
 require (
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/redis/rueidis v1.0.34
+	github.com/redis/rueidis v1.0.35
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/tools v0.20.0
