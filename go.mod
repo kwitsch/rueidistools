@@ -1,6 +1,7 @@
 module github.com/kwitsch/rueidistools
 
 go 1.21
+toolchain go1.22.5
 
 require (
 	github.com/golangci/golangci-lint v1.59.1
@@ -176,7 +177,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
@@ -190,7 +191,7 @@ require (
 require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/redis/rueidis v1.0.38
-	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/tools v0.22.0
+	golang.org/x/mod v0.21.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
+	golang.org/x/tools v0.25.0
 )
